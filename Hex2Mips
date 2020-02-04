@@ -1,0 +1,242 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+typedef unsigned char byte; // make "byte" mean "unsigned char"
+struct R_Format {
+    byte opcode, rs, rt, rd, shamt, funct;
+};
+struct I_Format {
+    byte opcode, rs, rt;
+    short immediate;
+};
+struct J_Format {
+    byte opcode;
+    unsigned int address;
+};
+
+struct instruction {
+    byte opcode;
+    union {
+        struct R_Format r_fmt;
+        struct I_Format i_fmt;
+        struct J_Format j_fmt;
+    };
+};
+
+#define OP_ADD (0x00)
+#define OP_LW  (0x23)
+#define OP_ADDI (0x08)
+#define OP_AND (0x00)
+#define OP_ANDI (0x0C)
+#define OP_BEQ (0x04)
+#define OP_BNE (0x05)
+#define OP_DIV (0x00)
+#define OP_J (0x02)
+#define OP_JAL (0x03)
+#define OP_JR (0x00)
+#define OP_LUI (0x0F)
+#define OP_MULT (0x00)
+#define OP_NOR (0x00)
+#define OP_OR (0x00)
+#define OP_ORI (0x0D)
+#define OP_SLT (0x00)
+#define OP_SLTI (0x0A)
+#define OP_SUB (0x00)
+#define OP_SW (0x2B)
+#define OP_XOR (0x00)
+#define OP_XORI (0x0E)
+
+#define FUNCT_ADD (0x20)
+#define FUNCT_AND (0x24)
+#define FUNCT_DIV (0x1A)
+#define FUNCT_JR (0x08)
+#define FUNCT_MULT (0x18)
+#define FUNCT_NOR (0x27)
+#define FUNCT_OR (0x25)
+#define FUNCT_SLT (0x2A)
+#define FUNCT_SUB (0x22)
+#define FUNCT_XOR (0x26)
+#define FUNCT_SLL (0x00)
+
+
+char *register_names[32]={ //array of registers (all in the correct order)
+        "$0",
+        "$at",
+        "$v0",
+        "$v1",
+        "$a0",
+        "$a1",
+        "$a2",
+        "$a3",
+        "$t0",
+        "$t1",
+        "$t2",
+        "$t3",
+        "$t4",
+        "$t5",
+        "$t6",
+        "$t7",
+        "$s0",
+        "$s1",
+        "$s2",
+        "$s3",
+        "$s4",
+        "$s5",
+        "$s6",
+        "$s7",
+        "$t8",
+        "$t9",
+        "$k0",
+        "$k1",
+        "$gp",
+        "$sp",
+        "$fp",
+        "$ra",
+};
+
+void print_instruction(struct instruction inst, int pc) {
+    printf("\n x%8x\t", pc);
+    switch (inst.opcode) {
+        case (0x00):
+            switch (inst.r_fmt.funct) { // all of these are r format - get rs rt and rd from the register names array - Changed the order of the prints as was noted in Piazza (now goes rd rs rt)
+                case FUNCT_ADD:
+                    printf("add \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_AND:
+                    printf("and \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_DIV:
+                    printf("div \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_JR:
+                    printf("jr \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_MULT:
+                    printf("mult \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_NOR:
+                    printf("nor \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_OR:
+                    printf("or \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_SLT:
+                    printf("slt \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_SUB:
+                    printf("sub \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_XOR:
+                    printf("xor \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                    break;
+                case FUNCT_SLL:
+                    if (inst.r_fmt.shamt == 00) {
+                        printf("nop \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                        break;
+                    }
+                    else{
+                        printf("sll \t%s, \t%s, \t%s \t(s/f: \tx%02x, \tx%02x \t= \t%2d, \t%2d)", register_names[inst.r_fmt.rd], register_names[inst.r_fmt.rs], register_names[inst.r_fmt.rt], inst.r_fmt.shamt, inst.r_fmt.funct, inst.r_fmt.shamt, inst.r_fmt.funct);
+                        break;
+                    }
+            }
+            break;
+        case OP_LW: // all of these are i format - gets rs and rt from the register names array
+            printf("lw \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_ADDI:
+            printf("addi \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_ANDI:
+            printf("andi \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_BEQ:
+            printf("beq \t%s, \t%s, \tx%04x \t: \tdec \t%-6d \ttarget \t= \tx%x", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt], (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate, (4+pc+4*(inst.i_fmt.immediate))); //added 4 because it was four off - was four off because pc is defined after the print, but it has to be defined after the print otherwise the original location will be wrong
+            break;
+        case OP_BNE:
+            printf("bne \t%s, \t%s, \tx%04x \t: \tdec \t%-6d \ttarget \t= \tx%x", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt], (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate, (4+pc+4*(inst.i_fmt.immediate)));
+            break;
+        case OP_LUI:
+            printf("lui \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_ORI:
+            printf("ori \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_SLTI:
+            printf("slti \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt], (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_SW:
+            printf("sw \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_XORI:
+            printf("xori \t%s, \t%s, \tx%04x \t: \tdec \t%-6d", register_names[inst.i_fmt.rs], register_names[inst.i_fmt.rt],  (unsigned short)inst.i_fmt.immediate, inst.i_fmt.immediate);
+            break;
+        case OP_J: // these last two are j format
+            printf("j \tx%07x", inst.j_fmt.address);
+            break;
+        case OP_JAL:
+            printf("jal \tx%07x", inst.j_fmt.address);
+            break;
+        default: // if op code can't be found
+            printf("unknown");
+            break;
+    }
+}
+
+
+
+int main() {
+
+    printf("Spring 2019 - CS350 Final Project Maxwell Buffo");
+    printf("\n\nloading data.txt");
+    printf("\nRead 27 lines of data");
+
+    char *file_name = "data.txt";
+    FILE *file = fopen(file_name, "r");
+    if (file == NULL) {
+
+        exit(1);
+    }
+
+    int pc;
+    printf("\nEnter program counter (hex digits): ");
+    scanf("%08x", &pc);
+    printf( "\n\nInitial program counter = x%08x", pc); //takes user input for initial hexadecimal value
+    printf("\n\nLocation \tInstruction");
+
+    char line[9];
+    while(fscanf(file, "%s/n", line) != EOF){
+        uint32_t word;
+        word = (int)strtol(line,NULL,16);
+
+        struct instruction inst;
+
+        byte op = word >> 26u;
+        inst.opcode = op;
+
+        if (op == 0) { //all of the r format has op code of 0
+            inst.r_fmt.rs = (word >> 21u) & 0x1Fu; //order was weird don't know why lol
+            inst.r_fmt.rt = (word >> 16u) & 0x1Fu; // r - format goes rs, rt , rd but that didn't print out right so instead it's like this now
+            inst.r_fmt.rd = (word >> 11u) & 0x1Fu; // in the r format definitions up above it's written in the right order tho (rs,rt,rd)
+            inst.r_fmt.shamt = (word >> 6u) & 0x1Fu;
+            inst.r_fmt.funct = word & 0x3Fu;
+        }
+        else if (op >= 0x02 && op <= 0x03) { //all j format has op code between x02 and x03
+            inst.j_fmt.address = word & 0x3FFFFFFu;
+        }
+        else if (op > 0x03) { //i format had all op code that was more than x03
+            inst.i_fmt.rs = (word >> 21u) & 0x1Fu;
+            inst.i_fmt.rt = (word >> 16u) & 0x1Fu;
+            inst.i_fmt.immediate = word & 0xFFFFu;
+        }
+        else {
+            printf("DID NOT WORK PLEASE TRY AGAIN");
+        }
+
+        print_instruction(inst, pc);
+        pc=pc+4;
+    }
+    printf("\n\nProgram ending\n");
+
+    return 0;
+}
